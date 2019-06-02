@@ -1,0 +1,124 @@
+--- mswebrtc-1.1.1/configure.ac.orig	2017-07-10 15:41:30.000000000 +0200
++++ mswebrtc-1.1.1/configure.ac	2019-06-02 08:05:19.276648110 +0200
+@@ -42,6 +42,9 @@
+ # check for libraries that have pkg-config files installed
+ PKG_CHECK_MODULES(MEDIASTREAMER, mediastreamer >= 2.0.0)
+ 
++AC_PROG_CC
++AC_PROG_CXX
++
+ # Checks for libraries.
+ # AC_CHECK_LIB([m],[cosf])
+ 
+--- mswebrtc-1.1.1/Makefile.am.orig	2017-07-10 15:41:30.000000000 +0200
++++ mswebrtc-1.1.1/Makefile.am	2019-06-02 08:24:42.140348337 +0200
+@@ -6,7 +6,8 @@
+ ISAC_FLAVOUR = fix
+ ISAC_SRC_DIR = webrtc/webrtc/modules/audio_coding/codecs/isac/$(ISAC_FLAVOUR)
+ ILBC_SRC_DIR = webrtc/webrtc/modules/audio_coding/codecs/ilbc
+-AEC_SRC_DIR = webrtc/webrtc/modules/audio_processing/aecm
++AEC_SRC_DIR = webrtc/webrtc/modules/audio_processing/aec
++AECM_SRC_DIR = webrtc/webrtc/modules/audio_processing/aecm
+ WEBRTC_COMMON_DIR = webrtc/webrtc/common_audio
+ WEBRTC_COMMON_SP_DIR = webrtc/webrtc/common_audio/signal_processing
+ 
+@@ -103,12 +104,34 @@
+ endif
+ 
+ AEC_BASE_SRCS = \
+-	$(AEC_SRC_DIR)/echo_control_mobile.c \
+-	$(AEC_SRC_DIR)/aecm_core.c \
+-	$(AEC_SRC_DIR)/../utility/delay_estimator.c \
+-	$(AEC_SRC_DIR)/../utility/delay_estimator_wrapper.c
++	$(AEC_SRC_DIR)/aec_core.c \
++	$(AEC_SRC_DIR)/aec_rdft.c \
++	$(AEC_SRC_DIR)/aec_resampler.c \
++	$(AEC_SRC_DIR)/echo_cancellation.c \
++	webrtc/webrtc/base/checks.cc \
++	$(WEBRTC_COMMON_DIR)/audio_util.cc \
++	$(WEBRTC_COMMON_DIR)/sparse_fir_filter.cc \
++	webrtc/webrtc/system_wrappers/source/cpu_features.cc \
++	webrtc/webrtc/modules/audio_processing/three_band_filter_bank.cc \
++	webrtc/webrtc/modules/audio_processing/utility/delay_estimator.c \
++	webrtc/webrtc/modules/audio_processing/utility/delay_estimator_wrapper.c
++
++AEC_X86_SRCS = \
++	$(AEC_SRC_DIR)/aec_core_sse2.c \
++	$(AEC_SRC_DIR)/aec_rdft_sse2.c
++$(AEC_SRC_DIR)/aec_core_sse2.lo $(AEC_SRC_DIR)/aec_rdft_sse2.lo: CFLAGS += -msse2
++
++AEC_ARM_SRCS = \
++	$(AEC_SRC_DIR)/aec_core_neon.c \
++	$(AEC_SRC_DIR)/aec_rdft_neon.c
++
++AECM_BASE_SRCS = \
++	$(AECM_SRC_DIR)/echo_control_mobile.c \
++	$(AECM_SRC_DIR)/aecm_core.c \
++	$(AECM_SRC_DIR)/../utility/delay_estimator.c \
++	$(AECM_SRC_DIR)/../utility/delay_estimator_wrapper.c
+ 
+-AEC_BASE_SRCS += $(AEC_SRC_DIR)/aecm_core_c.c
++AECM_BASE_SRCS += $(AECM_SRC_DIR)/aecm_core_c.c
+ 
+ ILBC_BASE_SRCS = \
+ 	$(ILBC_SRC_DIR)/abs_quant.c \
+@@ -181,11 +203,11 @@
+ 	$(ILBC_SRC_DIR)/window32_w32.c \
+ 	$(ILBC_SRC_DIR)/xcorr_coef.c 
+ 
+-libmswebrtc_la_SOURCES= mswebrtc.c $(top_srcdir)/$(WEBRTC_COMMON_SRCS)\
++libmswebrtc_la_SOURCES= mswebrtc.c $(WEBRTC_COMMON_SRCS)\
+ 	$(top_srcdir)/webrtc/webrtc/common_audio/signal_processing/include/signal_processing_library.h \
+ 	$(top_srcdir)/webrtc/webrtc/common_audio/signal_processing/include/spl_inl.h
+ if BUILD_ISAC
+-libmswebrtc_la_SOURCES+= $(top_srcdir)/$(ISAC_BASE_SRCS) isac_dec.c isac_enc.c \
++libmswebrtc_la_SOURCES+= $(ISAC_BASE_SRCS) isac_dec.c isac_enc.c \
+ 	$(top_srcdir)/isac_constants.h \
+ 	$(top_srcdir)/$(ISAC_SRC_DIR)/include/isacfix.h \
+ 	$(top_srcdir)/webrtc/webrtc/modules/audio_coding/codecs/isac/bandwidth_info.h \
+@@ -193,11 +215,11 @@
+ #$(ISAC_SRC_DIR)/../bandwith_info.h
+ endif
+ if BUILD_AEC
+-libmswebrtc_la_SOURCES+= $(top_srcdir)/$(AEC_BASE_SRCS) aec.c \
++libmswebrtc_la_SOURCES+= $(AEC_BASE_SRCS) $(AEC_X86_SRCS) aec.c aec_splitting_filter.cc \
+ 	$(top_srcdir)/$(AEC_SRC_DIR)/include/echo_control_mobile.h
+ endif
+ if BUILD_ILBC
+-libmswebrtc_la_SOURCES+= ilbc.c $(top_srcdir)/$(ILBC_BASE_SRCS)\
++libmswebrtc_la_SOURCES+= ilbc.c $(ILBC_BASE_SRCS)\
+ 	$(top_srcdir)/$(ILBC_SRC_DIR)/include/ilbc.h 
+ endif
+ 
+@@ -211,6 +233,11 @@
+ webrtc_CFLAGS = \
+ 	-I$(webrtc_DIR) \
+ 	-I$(top_srcdir)/$(WEBRTC_COMMON_SP_DIR)/include
++webrtc_CXXFLAGS = \
++	-I$(webrtc_DIR) \
++	-I$(top_srcdir)/webrtc/webrtc/modules/audio_processing \
++ 	-I$(top_srcdir)/$(WEBRTC_COMMON_DIR)/include \
++ 	-I$(top_srcdir)/$(WEBRTC_COMMON_SP_DIR)/include
+ if BUILD_ISAC
+ webrtc_CFLAGS += \
+ 	-I$(top_srcdir)/$(ISAC_SRC_DIR)/source \
+@@ -221,9 +245,7 @@
+ if BUILD_AEC
+ webrtc_CFLAGS += \
+ 	-I$(top_srcdir)/$(AEC_SRC_DIR)/include \
+-	-I$(top_srcdir)/webrtc/common_audio/signal_processing/include \
+-	-I$(top_srcdir)/webrtc/modules/audio_processing/utility \
+-	-I$(top_srcdir)/webrtc/system_wrappers/interface
++	-I$(top_srcdir)/webrtc/webrtc/modules/audio_processing/aec/include
+ endif
+ 
+ if BUILD_ILBC
+@@ -238,6 +265,8 @@
+ 	$(MEDIASTREAMER_CFLAGS) \
+ 	$(STRICT_CFLAGS)
+ 
++AM_CXXFLAGS= $(webrtc_CXXFLAGS)
++
+ INSTALLDIR=$(shell cd $(top_builddir) && pwd)/$(PACKAGE)-install
+ INSTALLDIR_WITH_PREFIX=$(INSTALLDIR)/$(prefix)
+ ZIPFILE=$(shell cd $(top_builddir) && pwd)/$(PACKAGE)-win32-$(VERSION).zip
