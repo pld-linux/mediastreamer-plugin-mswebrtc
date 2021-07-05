@@ -3,7 +3,7 @@ Summary:	WebRTC plugin for mediastreamer
 Summary(pl.UTF-8):	Wtyczka WebRTC dla mediastreamera
 Name:		mediastreamer-plugin-mswebrtc
 Version:	1.1.1
-Release:	1
+Release:	2
 License:	GPL v2
 Group:		Libraries
 Source0:	https://linphone.org/releases/sources/plugins/mswebrtc/mswebrtc-%{version}.tar.gz
