@@ -6,9 +6,12 @@ Version:	1.1.1
 Release:	2
 License:	GPL v2
 Group:		Libraries
-Source0:	https://linphone.org/releases/sources/plugins/mswebrtc/mswebrtc-%{version}.tar.gz
+#Source0Download: https://gitlab.linphone.org/BC/public/mswebrtc/-/tags
+#Source0:	https://gitlab.linphone.org/BC/public/mswebrtc/-/archive/%{version}/mswebrtc-%{version}.tar.bz2
+Source0:	https://linphone.org/releases/old/sources/plugins/mswebrtc/mswebrtc-%{version}.tar.gz
 # Source0-md5:	9f70eb5e5448dc8eaaaf72be13fe740c
 Patch0:		%{name}-make.patch
+Patch1:		%{name}-link.patch
 URL:		https://gitlab.linphone.org/BC/public/mswebrtc
 BuildRequires:	autoconf >= 2.63
 BuildRequires:	automake
@@ -29,6 +32,7 @@ iSAC, AECM...).
 %prep
 %setup -q -n mswebrtc-%{version}
 %patch0 -p1
+%patch1 -p1
 
 %build
 %{__libtoolize}

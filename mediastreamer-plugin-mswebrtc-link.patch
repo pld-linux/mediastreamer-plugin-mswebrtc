@@ -1,0 +1,12 @@
+--- mswebrtc-1.1.1/Makefile.am.orig	2021-07-18 09:16:19.619909300 +0200
++++ mswebrtc-1.1.1/Makefile.am	2021-07-18 09:21:24.214925834 +0200
+@@ -227,7 +227,8 @@ endif
+ 
+ libmswebrtc_la_LIBADD= \
+ 	$(ORTP_LIBS) \
+-	$(MEDIASTREAMER_LIBS)
++	$(MEDIASTREAMER_LIBS) \
++	-lpthread
+ 
+ libmswebrtc_la_LDFLAGS=-module -no-undefined
+ 
