@@ -1,0 +1,16 @@
+--- mswebrtc-1.1.2/CMakeLists.txt.orig	2021-06-21 22:17:38.000000000 +0200
++++ mswebrtc-1.1.2/CMakeLists.txt	2023-04-14 16:01:34.806566772 +0200
+@@ -205,10 +205,12 @@ if(ENABLE_AEC)
+ 			${AEC_SRC_DIR}/aec_rdft_neon.c
+ 		)
+ 	elseif(SYSTEM_PROCESSOR MATCHES "^i.?86.*" OR SYSTEM_PROCESSOR MATCHES "^x86.*" OR SYSTEM_PROCESSOR MATCHES "^x86_64.*" OR SYSTEM_PROCESSOR MATCHES "^amd64.*" OR SYSTEM_PROCESSOR MATCHES "^x64.*")
+-		list(APPEND AEC_SRCS
++		set(AEC_SSE2_SRCS
+ 			${AEC_SRC_DIR}/aec_core_sse2.c
+ 			${AEC_SRC_DIR}/aec_rdft_sse2.c
+ 		)
++		set_source_files_properties(${AEC_SSE2_SRCS} PROPERTIES COMPILE_FLAGS -msse2)
++		list(APPEND AEC_SRCS ${AEC_SSE2_SRCS})
+ 	endif()
+ 	include_directories(
+ 		${AEC_SRC_DIR}/include
