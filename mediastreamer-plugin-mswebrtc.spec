@@ -3,7 +3,7 @@ Summary:	WebRTC plugin for mediastreamer
 Summary(pl.UTF-8):	Wtyczka WebRTC dla mediastreamera
 Name:		mediastreamer-plugin-mswebrtc
 Version:	1.1.2
-Release:	1
+Release:	2
 License:	GPL v2
 Group:		Libraries
 #Source0Download: https://gitlab.linphone.org/BC/public/mswebrtc/-/tags
@@ -15,6 +15,8 @@ Source1:	https://gitlab.linphone.org/BC/public/external/webrtc/-/archive/%{webrt
 Patch0:		%{name}-make.patch
 Patch1:		%{name}-link.patch
 Patch2:		mswebrtc-sse2.patch
+Patch3:		mswebrtc-cmake.patch
+Patch4:		mswebrtc-b64-refactor.patch
 URL:		https://gitlab.linphone.org/BC/public/mswebrtc
 BuildRequires:	cmake >= 3.1
 BuildRequires:	libstdc++-devel >= 6:4.7
@@ -38,6 +40,8 @@ iSAC, AECM...).
 %patch0 -p1
 %patch1 -p1
 %patch2 -p1
+%patch3 -p1
+%patch4 -p1
 
 %build
 # autotools suite is more outdated, doesn't have VAD support
