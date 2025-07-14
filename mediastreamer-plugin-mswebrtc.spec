@@ -37,11 +37,11 @@ iSAC, AECM...).
 %prep
 %setup -q -n mswebrtc-%{version}
 %{__tar} xf %{SOURCE1} -C webrtc --strip-components=1
-%patch0 -p1
-%patch1 -p1
-%patch2 -p1
-%patch3 -p1
-%patch4 -p1
+%patch -P0 -p1
+%patch -P1 -p1
+%patch -P2 -p1
+%patch -P3 -p1
+%patch -P4 -p1
 
 %build
 # autotools suite is more outdated, doesn't have VAD support
